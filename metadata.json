@@ -1,0 +1,6 @@
+{
+  "name": "LUNARIS — Lunar Image Registration",
+  "description": "Futuristic Chandrayaan-2 lunar image registration & correspondence prototype with 3D multi-modal sensor moons, interactive Inspection Mode with UI dimming, animated feature matching, and telemetry analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

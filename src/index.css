@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #050812;
+    color: #e2e8f0;
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050812;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Futuristic HUD & Space Grid utilities */
+.space-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(53, 198, 244, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(53, 198, 244, 0.04) 1px, transparent 1px);
+}
+
+.space-grid-dense {
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(124, 140, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 140, 255, 0.05) 1px, transparent 1px);
+}
+
+.radar-sweep {
+  background: conic-gradient(from 0deg at 50% 50%, rgba(53, 198, 244, 0) 0deg, rgba(53, 198, 244, 0.25) 340deg, rgba(53, 198, 244, 0.8) 360deg);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -5px rgba(53, 198, 244, 0.35);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 12px -2px rgba(53, 198, 244, 0.4);
+}
+
+.glow-indigo {
+  box-shadow: 0 0 25px -5px rgba(124, 140, 255, 0.35);
+}
+
+.glow-success {
+  box-shadow: 0 0 20px -3px rgba(53, 208, 127, 0.4);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse-slow {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse-slow 24s linear infinite;
+}
