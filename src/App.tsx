@@ -663,6 +663,14 @@ export default function App() {
             onFastForward={handleFastForward}
             onComplete={handleFastForward}
             onGoToResults={() => {
+              if (!registrationComplete) {
+                setRegistrationComplete(true);
+                if (!registeredImageUrl && sourceImage) {
+                  const points = generateSyntheticMatchPoints(120, metrics.inlierRatio / 100, metrics.transformation);
+                  setMatchPoints(points);
+                  generateRegisteredCompositedImage(sourceImage.url, metrics.transformation, 600, 600, (url) => setRegisteredImageUrl(url));
+                }
+              }
               startTransition(() => {
                 setActiveScreen('results');
               });
@@ -676,6 +684,8 @@ export default function App() {
             sourceSensor={sourceSensor}
             referenceName={referenceImage?.name}
             sourceName={sourceImage?.name}
+            referenceImageUrl={referenceImage?.url}
+            sourceImageUrl={sourceImage?.url}
           />
         )}
 

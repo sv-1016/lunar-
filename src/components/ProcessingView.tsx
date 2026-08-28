@@ -38,6 +38,8 @@ interface ProcessingViewProps {
   sourceSensor: SensorType;
   referenceName?: string;
   sourceName?: string;
+  referenceImageUrl?: string;
+  sourceImageUrl?: string;
 }
 
 interface StepItem {
@@ -69,6 +71,8 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({
   sourceSensor,
   referenceName = 'Reference Frame',
   sourceName = 'Source Frame',
+  referenceImageUrl,
+  sourceImageUrl,
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [active3DView, setActive3DView] = useState<'google_globe' | 'triple_sensors'>('google_globe');
@@ -303,10 +307,13 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({
                 isProcessing={progress < 100}
                 referenceSensor={referenceSensor}
                 sourceSensor={sourceSensor}
+                referenceImageUrl={referenceImageUrl}
+                sourceImageUrl={sourceImageUrl}
                 className="w-full h-[580px] lg:h-[650px] xl:h-[690px] flex-1"
                 isInspectionMode={isInspectionMode}
                 onToggleInspectionMode={() => setIsInspectionMode(!isInspectionMode)}
                 onFastForward={onFastForward}
+                onGoToResults={onGoToResults}
                 currentStepLabel={currentStep.label}
               />
             </div>

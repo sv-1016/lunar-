@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import { SensorType } from '../types';
+import { generateProceduralLunarImage } from '../utils/lunarImageGenerator';
 import { 
   Compass, 
   Plus, 
@@ -178,11 +179,14 @@ interface GoogleMoonGlobeProps {
   isProcessing: boolean;
   referenceSensor: SensorType;
   sourceSensor: SensorType;
+  referenceImageUrl?: string;
+  sourceImageUrl?: string;
   targetRegion?: string;
   className?: string;
   isInspectionMode?: boolean;
   onToggleInspectionMode?: () => void;
   onFastForward?: () => void;
+  onGoToResults?: () => void;
   currentStepLabel?: string;
 }
 
@@ -191,11 +195,14 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
   isProcessing,
   referenceSensor,
   sourceSensor,
+  referenceImageUrl,
+  sourceImageUrl,
   targetRegion = 'Tycho Crater — Central Peak Complex',
   className = 'w-full h-[580px]',
   isInspectionMode = false,
   onToggleInspectionMode,
   onFastForward,
+  onGoToResults,
   currentStepLabel = 'SuperPoint Deep Descriptors',
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -207,6 +214,17 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
   const [showStageBar, setShowStageBar] = useState<boolean>(true);
   const [surfaceViewMode, setSurfaceViewMode] = useState<'correspondences' | 'split' | 'difference'>('correspondences');
   const [splitSliderPos, setSplitSliderPos] = useState<number>(50);
+
+  // Guaranteed realistic lunar imagery for Stage 5 surface inspection & alignment
+  const effectiveRefUrl = useMemo(() => {
+    if (referenceImageUrl) return referenceImageUrl;
+    return generateProceduralLunarImage(referenceSensor, 101, 45, 600, 600, targetRegion);
+  }, [referenceImageUrl, referenceSensor, targetRegion]);
+
+  const effectiveSrcUrl = useMemo(() => {
+    if (sourceImageUrl) return sourceImageUrl;
+    return generateProceduralLunarImage(sourceSensor, 202, 60, 600, 600, targetRegion);
+  }, [sourceImageUrl, sourceSensor, targetRegion]);
 
   // UI state
   const [mapMode, setMapMode] = useState<'real_lroc' | 'quickmap_dem' | 'topography' | 'thermal' | 'panchromatic'>('real_lroc');
@@ -1222,53 +1240,78 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
             {surfaceViewMode === 'correspondences' && (
               <div className="relative w-full h-full flex flex-col sm:flex-row items-center justify-center gap-4 p-4">
                 {/* Reference Frame */}
-                <div className="relative flex-1 h-full bg-[#111622] rounded-lg border border-slate-700 flex flex-col items-center justify-center overflow-hidden">
-                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded bg-black/70 text-[#35C6F4] font-mono text-[10px] border border-[#35C6F4]/30">
+                <div className="relative flex-1 h-full bg-[#111622] rounded-lg border border-slate-700 flex flex-col items-center justify-center overflow-hidden group">
+                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded bg-black/80 text-[#35C6F4] font-mono text-[10px] border border-[#35C6F4]/40 backdrop-blur-sm">
                     REFERENCE: {referenceSensor} (0.25m Panchromatic)
                   </div>
-                  {/* High contrast Tycho surface simulation */}
-                  <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-600 via-slate-800 to-black p-4 flex items-center justify-center relative">
-                    <div className="w-48 h-48 rounded-full border-2 border-white/40 bg-slate-900/60 relative flex items-center justify-center shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
-                      <div className="w-12 h-12 rounded-full bg-slate-400/80 shadow-md border border-white/60" />
-                      {/* SuperPoint tie points */}
-                      {[
-                        { top: '25%', left: '30%' },
-                        { top: '40%', left: '70%' },
-                        { top: '65%', left: '45%' },
-                        { top: '75%', left: '20%' },
-                        { top: '20%', left: '80%' },
-                      ].map((pt, i) => (
-                        <div key={i} className="absolute w-2 h-2 rounded-full bg-[#35C6F4] animate-ping" style={pt} />
-                      ))}
-                    </div>
+                  
+                  {/* Real lunar photo or realistic photographic high-contrast lunar surface */}
+                  <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                    <img
+                      src={effectiveRefUrl}
+                      alt="Reference Observation"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                    {/* SuperPoint tie point markers */}
+                    {[
+                      { top: '22%', left: '28%' },
+                      { top: '38%', left: '65%' },
+                      { top: '55%', left: '42%' },
+                      { top: '72%', left: '25%' },
+                      { top: '30%', left: '80%' },
+                      { top: '68%', left: '74%' },
+                      { top: '48%', left: '18%' },
+                    ].map((pt, i) => (
+                      <div key={i} className="absolute z-10 flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style={pt}>
+                        <div className="w-3 h-3 rounded-full border-2 border-[#35C6F4] bg-[#35C6F4]/30 animate-ping" />
+                        <div className="absolute w-1.5 h-1.5 rounded-full bg-[#35C6F4] shadow-[0_0_8px_#35C6F4]" />
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Correspondence Laser Beam Divider */}
-                <div className="flex sm:flex-col items-center justify-center gap-1 font-mono text-[#35D07F] text-[10px] py-1 shrink-0">
-                  <span className="w-2 h-2 rounded-full bg-[#35D07F] animate-ping" />
-                  <span className="hidden sm:inline writing-mode-vertical">1,047 TIE POINTS</span>
-                  <span className="sm:hidden">1,047 TIE POINTS</span>
+                <div className="flex sm:flex-col items-center justify-center gap-1 font-mono text-[#35D07F] text-[10px] py-1 shrink-0 bg-[#0B1220]/90 px-2 py-2 rounded-xl border border-slate-800">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#35D07F] animate-ping" />
+                  <span className="hidden sm:inline writing-mode-vertical font-bold text-xs tracking-wider">1,047 TIE POINTS</span>
+                  <span className="sm:hidden font-bold">1,047 TIE POINTS</span>
+                  <span className="text-[9px] text-slate-400">RANSAC 81.5%</span>
                 </div>
 
                 {/* Source Frame */}
-                <div className="relative flex-1 h-full bg-[#111622] rounded-lg border border-slate-700 flex flex-col items-center justify-center overflow-hidden">
-                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded bg-black/70 text-[#7C8CFF] font-mono text-[10px] border border-[#7C8CFF]/30">
+                <div className="relative flex-1 h-full bg-[#111622] rounded-lg border border-slate-700 flex flex-col items-center justify-center overflow-hidden group">
+                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded bg-black/80 text-[#7C8CFF] font-mono text-[10px] border border-[#7C8CFF]/40 backdrop-blur-sm">
                     SOURCE: {sourceSensor} (Hyperspectral / Stereo DEM)
                   </div>
-                  <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-800/40 via-slate-800 to-black p-4 flex items-center justify-center relative">
-                    <div className="w-48 h-48 rounded-full border-2 border-[#7C8CFF]/50 bg-slate-900/60 relative flex items-center justify-center shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
-                      <div className="w-12 h-12 rounded-full bg-teal-300/60 shadow-md border border-[#7C8CFF]" />
-                      {[
-                        { top: '27%', left: '32%' },
-                        { top: '42%', left: '68%' },
-                        { top: '63%', left: '47%' },
-                        { top: '73%', left: '22%' },
-                        { top: '22%', left: '78%' },
-                      ].map((pt, i) => (
-                        <div key={i} className="absolute w-2 h-2 rounded-full bg-[#35D07F] animate-ping" style={pt} />
-                      ))}
-                    </div>
+                  
+                  {/* Real lunar photo or realistic photographic high-contrast lunar surface */}
+                  <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                    <img
+                      src={effectiveSrcUrl}
+                      alt="Source Observation"
+                      className="w-full h-full object-cover filter contrast-125"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                    {/* Transformed SuperPoint tie point markers */}
+                    {[
+                      { top: '24%', left: '30%' },
+                      { top: '40%', left: '63%' },
+                      { top: '53%', left: '44%' },
+                      { top: '70%', left: '27%' },
+                      { top: '32%', left: '78%' },
+                      { top: '66%', left: '72%' },
+                      { top: '50%', left: '20%' },
+                    ].map((pt, i) => (
+                      <div key={i} className="absolute z-10 flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style={pt}>
+                        <div className="w-3 h-3 rounded-full border-2 border-[#35D07F] bg-[#35D07F]/30 animate-ping" />
+                        <div className="absolute w-1.5 h-1.5 rounded-full bg-[#35D07F] shadow-[0_0_8px_#35D07F]" />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1277,30 +1320,49 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
             {surfaceViewMode === 'split' && (
               <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
                 <div className="w-full h-full relative bg-slate-900 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-600 via-slate-800 to-black" />
+                  <img
+                    src={effectiveRefUrl}
+                    alt="Reference Split"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  
                   <div 
-                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-teal-700/60 via-slate-900 to-black border-r-2 border-[#35C6F4]"
+                    className="absolute inset-0 overflow-hidden border-r-2 border-[#35C6F4] shadow-[0_0_15px_rgba(53,198,244,0.6)]"
                     style={{ width: `${splitSliderPos}%` }}
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={splitSliderPos}
-                    onChange={(e) => setSplitSliderPos(Number(e.target.value))}
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 w-3/4 z-20 appearance-none bg-slate-800 h-2 rounded-lg accent-[#35C6F4] cursor-ew-resize"
-                  />
+                  >
+                    <img
+                      src={effectiveSrcUrl}
+                      alt="Source Split"
+                      className="w-full h-full object-cover filter contrast-125"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-3/4 z-20 flex items-center gap-3 bg-black/75 px-4 py-2 rounded-xl backdrop-blur-md border border-slate-700">
+                    <span className="font-mono text-[10px] text-slate-300">SPLIT CURTAIN</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={splitSliderPos}
+                      onChange={(e) => setSplitSliderPos(Number(e.target.value))}
+                      className="flex-1 appearance-none bg-slate-800 h-2 rounded-lg accent-[#35C6F4] cursor-ew-resize"
+                    />
+                    <span className="font-mono text-[10px] text-[#35C6F4] font-bold">{splitSliderPos}%</span>
+                  </div>
                 </div>
               </div>
             )}
 
             {surfaceViewMode === 'difference' && (
               <div className="relative w-full h-full flex flex-col items-center justify-center p-4 bg-black">
-                <div className="w-64 h-64 rounded-full border border-[#35D07F]/40 bg-[#050e0a] flex items-center justify-center relative shadow-[0_0_40px_rgba(53,208,127,0.15)]">
-                  <div className="text-center font-mono space-y-1">
+                <div className="w-72 h-72 rounded-2xl border border-[#35D07F]/40 bg-[#050e0a] flex flex-col items-center justify-center relative shadow-[0_0_40px_rgba(53,208,127,0.15)] p-4">
+                  <div className="text-center font-mono space-y-2">
                     <span className="text-[#35D07F] font-bold text-xs block">SUB-PIXEL ERROR RESIDUAL</span>
-                    <span className="text-2xl font-bold text-white">0.08 px</span>
-                    <span className="text-[10px] text-slate-400 block">Mean Disparity Vector = [0.03, -0.05] px</span>
+                    <span className="text-3xl font-bold text-white">0.08 px</span>
+                    <span className="text-[11px] text-slate-300 block">Mean Disparity Vector = [0.03, -0.05] px</span>
+                    <span className="text-[10px] text-[#35C6F4] block">L2 Photometric Loss = 0.0014 RMSE</span>
                   </div>
                 </div>
               </div>
@@ -1309,8 +1371,8 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
           </div>
 
           {/* Footer Telemetry & Return to Globe Button */}
-          <div className="flex items-center justify-between bg-[#0B1220] border border-slate-800 p-2.5 rounded-xl font-mono text-[11px]">
-            <div className="flex items-center gap-4 text-slate-300">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0B1220] border border-slate-800 p-2.5 rounded-xl font-mono text-[11px]">
+            <div className="flex flex-wrap items-center gap-4 text-slate-300">
               <div>
                 <span className="text-slate-500">Inlier Ratio:</span>{' '}
                 <strong className="text-[#35D07F]">81.46% (1,047 / 1,284)</strong>
@@ -1325,14 +1387,26 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => handleSelectStage('globe_rotate')}
-              className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all flex items-center gap-1.5"
-            >
-              <RotateCw className="w-3 h-3 text-[#35C6F4]" />
-              <span>Back to 3D Globe Orbit</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSelectStage('globe_rotate')}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <RotateCw className="w-3 h-3 text-[#35C6F4]" />
+                <span>Back to 3D Orbit</span>
+              </button>
+
+              {onGoToResults && (
+                <button
+                  type="button"
+                  onClick={onGoToResults}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#35D07F] hover:bg-[#35D07F]/90 text-black font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  <span>Open Full Comparison Slider →</span>
+                </button>
+              )}
+            </div>
           </div>
 
         </div>
