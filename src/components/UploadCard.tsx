@@ -7,8 +7,8 @@ interface UploadCardProps {
   title: string;
   image: UploadedImage | null;
   sensor: SensorType;
-  onImageChange: (image: UploadedImage | null) => void;
-  onLoadPreset: () => void;
+  onImageChange?: (image: UploadedImage | null) => void;
+  onLoadPreset?: () => void;
 }
 
 export const UploadCard: React.FC<UploadCardProps> = ({
@@ -48,7 +48,9 @@ export const UploadCard: React.FC<UploadCardProps> = ({
           timestamp: new Date().toISOString(),
           targetRegion: 'User Custom Observation',
         };
-        onImageChange(newUploadedImage);
+        if (typeof onImageChange === 'function') {
+          onImageChange(newUploadedImage);
+        }
       };
       img.src = url;
     };
@@ -219,7 +221,11 @@ export const UploadCard: React.FC<UploadCardProps> = ({
             <button
               type="button"
               id={`${type}-remove-btn`}
-              onClick={() => onImageChange(null)}
+              onClick={() => {
+                if (typeof onImageChange === 'function') {
+                  onImageChange(null);
+                }
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-xs font-medium text-red-300 border border-red-800/50 transition-all font-mono"
             >
               <X className="w-3 h-3 text-red-400" />
@@ -230,7 +236,11 @@ export const UploadCard: React.FC<UploadCardProps> = ({
           <button
             type="button"
             id={`${type}-load-preset-btn`}
-            onClick={onLoadPreset}
+            onClick={() => {
+              if (typeof onLoadPreset === 'function') {
+                onLoadPreset();
+              }
+            }}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#050812] hover:bg-slate-800/90 text-xs font-medium text-[#35C6F4] border border-[#35C6F4]/30 hover:border-[#35C6F4] transition-all font-mono"
           >
             <Sparkles className="w-3.5 h-3.5" />

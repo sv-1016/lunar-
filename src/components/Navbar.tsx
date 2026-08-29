@@ -11,7 +11,9 @@ import {
   Orbit, 
   Sparkles,
   RefreshCw,
-  Radio
+  Radio,
+  Globe2,
+  GitMerge
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -46,15 +48,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems: { id: ActiveScreen; label: string; icon: React.ElementType }[] = [
     { id: 'registration', label: 'Registration', icon: Layers },
-    { id: 'processing', label: 'Processing', icon: Cpu },
-    { id: 'results', label: 'Results', icon: Activity },
-    { id: 'comparison', label: 'Comparison', icon: SlidersHorizontal },
-    { id: 'analysis', label: 'Analysis', icon: FileText },
-    { id: 'history', label: 'History', icon: History },
+    { id: 'processing', label: '3D Processing', icon: Orbit },
+    { id: 'results', label: 'Results & Metrics', icon: Activity },
+    { id: 'comparison', label: 'Comparison Slider', icon: SlidersHorizontal },
+    { id: 'analysis', label: 'Deep Analysis', icon: FileText },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#050812]/80 backdrop-blur-md border-b border-slate-800/80">
+    <header className="sticky top-0 z-40 w-full bg-[#050812]/90 backdrop-blur-md border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
         {/* Brand & Logo */}
@@ -62,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button 
             id="brand-home-btn"
             onClick={() => onNavigate('registration')}
-            className="flex items-center gap-2.5 text-left group focus:outline-none"
+            className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer"
           >
             <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#35C6F4]/20 to-[#7C8CFF]/20 border border-[#35C6F4]/40 flex items-center justify-center group-hover:border-[#35C6F4] transition-all">
               <Orbit className="w-5 h-5 text-[#35C6F4] animate-spin-slow" />
@@ -72,11 +73,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="font-bold tracking-wider text-base text-white">LUNARIS</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#35C6F4]/10 text-[#35C6F4] border border-[#35C6F4]/30 font-mono">
-                  v1.0
+                  v2.0
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-mono tracking-tight hidden sm:block">
-                CHANDRAYAAN-2 LUNAR REGISTRATION
+                CHANDRAYAAN-2 LUNAR IMAGE REGISTRATION
               </p>
             </div>
           </button>
@@ -114,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="sample-datasets-btn"
               onClick={() => setShowSampleMenu(!showSampleMenu)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-[#35C6F4]/60 text-xs text-slate-300 transition-all font-mono"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-[#35C6F4]/60 text-xs text-slate-300 transition-all font-mono cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#35C6F4]" />
               <span className="hidden sm:inline">Load Sample</span>
@@ -134,13 +135,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onLoadSample('shackleton_south_pole');
                     setShowSampleMenu(false);
                   }}
-                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg mt-1 transition-colors group"
+                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg mt-1 transition-colors group cursor-pointer"
                 >
                   <div className="text-xs font-semibold text-slate-200 group-hover:text-[#35C6F4]">
                     Shackleton Crater — South Pole
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    OHRC (0.3m) → TMC-2 (5m) • 89.9°S
+                    OHRC (0.25m) ↔ TMC-2 (5m) • 89.9°S
+                  </div>
+                </button>
+                <button
+                  id="sample-pair-cabeus"
+                  onClick={() => {
+                    onLoadSample('cabeus_crater');
+                    setShowSampleMenu(false);
+                  }}
+                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg transition-colors group cursor-pointer"
+                >
+                  <div className="text-xs font-semibold text-slate-200 group-hover:text-[#7C8CFF]">
+                    Cabeus Crater — Deep Cold Trap
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    CH-2 OHRC ↔ LRO NAC (0.5m)
                   </div>
                 </button>
                 <button
@@ -149,13 +165,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onLoadSample('tycho_central_peak');
                     setShowSampleMenu(false);
                   }}
-                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg transition-colors group"
+                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg transition-colors group cursor-pointer"
                 >
-                  <div className="text-xs font-semibold text-slate-200 group-hover:text-[#7C8CFF]">
+                  <div className="text-xs font-semibold text-slate-200 group-hover:text-[#35D07F]">
                     Tycho Central Peak Complex
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    OHRC (Optical) → IIRS (Infrared)
+                    OHRC (Optical) ↔ IIRS (Hyperspectral)
                   </div>
                 </button>
                 <button
@@ -164,13 +180,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onLoadSample('mare_orientale_basin');
                     setShowSampleMenu(false);
                   }}
-                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg transition-colors group"
+                  className="w-full text-left px-2.5 py-2 hover:bg-slate-800/80 rounded-lg transition-colors group cursor-pointer"
                 >
-                  <div className="text-xs font-semibold text-slate-200 group-hover:text-[#35D07F]">
+                  <div className="text-xs font-semibold text-slate-200 group-hover:text-amber-400">
                     Mare Orientale Impact Basin
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    TMC-2 (Stereo) → IIRS (Hyperspectral)
+                    TMC-2 (Stereo) ↔ IIRS
                   </div>
                 </button>
               </div>
@@ -193,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             id="help-modal-trigger-btn"
             onClick={onOpenHelp}
             aria-label="Mission Documentation & Help"
-            className="p-2 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white transition-all"
+            className="p-2 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white transition-all cursor-pointer"
             title="Mission Specs & Help Guide"
           >
             <HelpCircle className="w-4 h-4" />
@@ -204,7 +220,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             id="app-reset-btn"
             onClick={onReset}
             aria-label="Reset Mission Data"
-            className="p-2 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-red-500/50 hover:text-red-400 text-slate-400 transition-all"
+            className="p-2 rounded-lg bg-[#0B1220] border border-slate-700 hover:border-red-500/50 hover:text-red-400 text-slate-400 transition-all cursor-pointer"
             title="Reset Workflow"
           >
             <RefreshCw className="w-4 h-4" />
@@ -229,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Icon className="w-4 h-4 mb-0.5" />
-              <span>{item.label}</span>
+              <span className="whitespace-nowrap">{item.label}</span>
             </button>
           );
         })}
@@ -237,3 +253,4 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
+

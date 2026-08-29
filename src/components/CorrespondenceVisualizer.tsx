@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MatchPoint, UploadedImage, SensorType } from '../types';
-import { Eye, EyeOff, Filter, Sliders, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Filter, Sliders, CheckCircle2, XCircle, Sparkles, Check } from 'lucide-react';
 
 interface CorrespondenceVisualizerProps {
   referenceImage: UploadedImage;
   sourceImage: UploadedImage;
   matchPoints: MatchPoint[];
-  showInliers: boolean;
-  showOutliers: boolean;
-  showConnections: boolean;
-  pointLimit: number;
-  opacity: number;
+  showInliers?: boolean;
+  showOutliers?: boolean;
+  showConnections?: boolean;
+  pointLimit?: number;
+  opacity?: number;
   onToggleInliers?: (val: boolean) => void;
   onToggleOutliers?: (val: boolean) => void;
   onToggleConnections?: (val: boolean) => void;
@@ -35,14 +35,77 @@ export const CorrespondenceVisualizer: React.FC<CorrespondenceVisualizerProps> =
   onOpacityChange,
   showControls = true,
 }) => {
+  const [internalShowInliers, setInternalShowInliers] = useState<boolean>(showInliers);
+  const [internalShowOutliers, setInternalShowOutliers] = useState<boolean>(showOutliers);
+  const [internalShowConnections, setInternalShowConnections] = useState<boolean>(showConnections);
+  const [internalPointLimit, setInternalPointLimit] = useState<number>(pointLimit);
+  const [internalOpacity, setInternalOpacity] = useState<number>(opacity);
   const [selectedPointId, setSelectedPointId] = useState<number | null>(null);
+  const [dimensions, setDimensions] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Filtered points
+  // Sync internal state when controlled props change
+  useEffect(() => {
+    setInternalShowInliers(showInliers);
+  }, [showInliers]);
+
+  useEffect(() => {
+    setInternalShowOutliers(showOutliers);
+  }, [showOutliers]);
+
+  useEffect(() => {
+    setInternalShowConnections(showConnections);
+  }, [showConnections]);
+
+  useEffect(() => {
+    setInternalPointLimit(pointLimit);
+  }, [pointLimit]);
+
+  useEffect(() => {
+    setInternalOpacity(opacity);
+  }, [opacity]);
+
+  // Window/container resize observer
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          w: containerRef.current.clientWidth,
+          h: containerRef.current.clientHeight,
+        });
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  const handleToggleInliers = (val: boolean) => {
+    setInternalShowInliers(val);
+    onToggleInliers?.(val);
+  };
+
+  const handleToggleOutliers = (val: boolean) => {
+    setInternalShowOutliers(val);
+    onToggleOutliers?.(val);
+  };
+
+  const handleToggleConnections = (val: boolean) => {
+    setInternalShowConnections(val);
+    onToggleConnections?.(val);
+  };
+
+  const handlePointLimitChange = (val: number) => {
+    setInternalPointLimit(val);
+    onPointLimitChange?.(val);
+  };
+
+  // Filtered points based on active toggles
   const visiblePoints = matchPoints
-    .filter((pt) => (pt.inlier && showInliers) || (!pt.inlier && showOutliers))
-    .slice(0, pointLimit);
+    .filter((pt) => (pt.inlier && internalShowInliers) || (!pt.inlier && internalShowOutliers))
+    .slice(0, internalPointLimit);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -85,7 +148,7 @@ export const CorrespondenceVisualizer: React.FC<CorrespondenceVisualizerProps> =
       }
 
       // Colors: Cyan for selected, Green for inlier, Red for outlier
-      let strokeColor = pt.inlier ? `rgba(53, 208, 127, ${opacity})` : `rgba(255, 92, 92, ${opacity * 0.7})`;
+      let strokeColor = pt.inlier ? `rgba(53, 208, 127, ${internalOpacity})` : `rgba(255, 92, 92, ${internalOpacity * 0.7})`;
       let fillColor = pt.inlier ? '#35D07F' : '#FF5C5C';
 
       if (isSelected) {
@@ -94,7 +157,7 @@ export const CorrespondenceVisualizer: React.FC<CorrespondenceVisualizerProps> =
       }
 
       // Draw connection line
-      if (showConnections) {
+      if (internalShowConnections) {
         ctx.beginPath();
         ctx.moveTo(rx, ry);
         // Subtle curve for futuristic HUD aesthetic
@@ -150,7 +213,7 @@ export const CorrespondenceVisualizer: React.FC<CorrespondenceVisualizerProps> =
         ctx.fillText(`PT #${pt.id} (Conf: ${(pt.confidence * 100).toFixed(0)}%)`, rx + 14, ry - 6);
       }
     });
-  }, [visiblePoints, selectedPointId, showConnections, opacity]);
+  }, [visiblePoints, selectedPointId, internalShowConnections, internalOpacity, dimensions]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -297,55 +360,88 @@ export const CorrespondenceVisualizer: React.FC<CorrespondenceVisualizerProps> =
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
             
             {/* Toggle Inliers */}
-            <label className="flex items-center gap-2.5 cursor-pointer bg-[#050812] p-2.5 rounded-xl border border-slate-800 hover:border-slate-700">
-              <input
-                id="toggle-inliers-checkbox"
-                type="checkbox"
-                checked={showInliers}
-                onChange={(e) => onToggleInliers && onToggleInliers(e.target.checked)}
-                className="w-4 h-4 rounded text-[#35D07F] focus:ring-0 bg-slate-900 border-slate-700 cursor-pointer accent-[#35D07F]"
-              />
-              <span className="text-slate-200">Show Inliers</span>
-            </label>
+            <button
+              type="button"
+              id="toggle-inliers-btn"
+              onClick={() => handleToggleInliers(!internalShowInliers)}
+              className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left cursor-pointer select-none ${
+                internalShowInliers
+                  ? 'bg-[#35D07F]/10 border-[#35D07F]/60 text-white shadow-sm ring-1 ring-[#35D07F]/30'
+                  : 'bg-[#050812] border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-[#050812]/80'
+              }`}
+            >
+              <div
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${
+                  internalShowInliers
+                    ? 'bg-[#35D07F] border-[#35D07F] text-black'
+                    : 'border-slate-600 bg-slate-900'
+                }`}
+              >
+                {internalShowInliers && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+              <span className="text-xs font-mono font-medium">Show Inliers</span>
+            </button>
 
             {/* Toggle Outliers */}
-            <label className="flex items-center gap-2.5 cursor-pointer bg-[#050812] p-2.5 rounded-xl border border-slate-800 hover:border-slate-700">
-              <input
-                id="toggle-outliers-checkbox"
-                type="checkbox"
-                checked={showOutliers}
-                onChange={(e) => onToggleOutliers && onToggleOutliers(e.target.checked)}
-                className="w-4 h-4 rounded text-[#FF5C5C] focus:ring-0 bg-slate-900 border-slate-700 cursor-pointer accent-[#FF5C5C]"
-              />
-              <span className="text-slate-200">Show Outliers</span>
-            </label>
+            <button
+              type="button"
+              id="toggle-outliers-btn"
+              onClick={() => handleToggleOutliers(!internalShowOutliers)}
+              className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left cursor-pointer select-none ${
+                internalShowOutliers
+                  ? 'bg-[#FF5C5C]/10 border-[#FF5C5C]/60 text-white shadow-sm ring-1 ring-[#FF5C5C]/30'
+                  : 'bg-[#050812] border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-[#050812]/80'
+              }`}
+            >
+              <div
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${
+                  internalShowOutliers
+                    ? 'bg-[#FF5C5C] border-[#FF5C5C] text-white'
+                    : 'border-slate-600 bg-slate-900'
+                }`}
+              >
+                {internalShowOutliers && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+              <span className="text-xs font-mono font-medium">Show Outliers</span>
+            </button>
 
             {/* Toggle Connections */}
-            <label className="flex items-center gap-2.5 cursor-pointer bg-[#050812] p-2.5 rounded-xl border border-slate-800 hover:border-slate-700">
-              <input
-                id="toggle-connections-checkbox"
-                type="checkbox"
-                checked={showConnections}
-                onChange={(e) => onToggleConnections && onToggleConnections(e.target.checked)}
-                className="w-4 h-4 rounded text-[#35C6F4] focus:ring-0 bg-slate-900 border-slate-700 cursor-pointer accent-[#35C6F4]"
-              />
-              <span className="text-slate-200">Show Connections</span>
-            </label>
+            <button
+              type="button"
+              id="toggle-connections-btn"
+              onClick={() => handleToggleConnections(!internalShowConnections)}
+              className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left cursor-pointer select-none ${
+                internalShowConnections
+                  ? 'bg-[#35C6F4]/10 border-[#35C6F4]/60 text-white shadow-sm ring-1 ring-[#35C6F4]/30'
+                  : 'bg-[#050812] border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-[#050812]/80'
+              }`}
+            >
+              <div
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${
+                  internalShowConnections
+                    ? 'bg-[#35C6F4] border-[#35C6F4] text-black'
+                    : 'border-slate-600 bg-slate-900'
+                }`}
+              >
+                {internalShowConnections && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+              <span className="text-xs font-mono font-medium">Show Connections</span>
+            </button>
 
             {/* Point Density Slider */}
-            <div className="bg-[#050812] p-2.5 rounded-xl border border-slate-800 space-y-1">
-              <div className="flex justify-between text-[11px] text-slate-400">
+            <div className="bg-[#050812] p-2.5 px-3 rounded-xl border border-slate-800 flex flex-col justify-center space-y-1.5">
+              <div className="flex justify-between text-[11px] text-slate-400 font-mono">
                 <span>Match Density:</span>
-                <span className="text-white font-bold">{pointLimit}</span>
+                <span className="text-[#35C6F4] font-bold">{internalPointLimit}</span>
               </div>
               <input
                 id="point-limit-slider"
                 type="range"
-                min="10"
-                max={matchPoints.length}
-                value={pointLimit}
-                onChange={(e) => onPointLimitChange && onPointLimitChange(Number(e.target.value))}
-                className="w-full accent-[#35C6F4] cursor-pointer"
+                min={10}
+                max={Math.max(matchPoints.length, 10)}
+                value={internalPointLimit}
+                onChange={(e) => handlePointLimitChange(Number(e.target.value))}
+                className="w-full accent-[#35C6F4] cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none"
               />
             </div>
 

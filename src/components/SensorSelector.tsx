@@ -1,7 +1,7 @@
 import React from 'react';
 import { SensorType } from '../types';
 import { SENSORS } from '../data/sensors';
-import { Camera, Satellite, Eye } from 'lucide-react';
+import { Camera, Satellite, Eye, Radio, Orbit } from 'lucide-react';
 
 interface SensorSelectorProps {
   label: string;
@@ -16,7 +16,7 @@ export const SensorSelector: React.FC<SensorSelectorProps> = ({
   onChange,
   idPrefix,
 }) => {
-  const currentSensorInfo = SENSORS[selectedSensor];
+  const currentSensorInfo = SENSORS[selectedSensor] || SENSORS.OHRC;
 
   const getSensorIcon = (sensor: SensorType) => {
     switch (sensor) {
@@ -26,6 +26,10 @@ export const SensorSelector: React.FC<SensorSelectorProps> = ({
         return Satellite;
       case 'IIRS':
         return Eye;
+      case 'NAC':
+        return Radio;
+      default:
+        return Orbit;
     }
   };
 
@@ -37,11 +41,11 @@ export const SensorSelector: React.FC<SensorSelectorProps> = ({
           {label}
         </label>
         <span className="text-[11px] text-slate-400 font-mono">
-          Chandrayaan-2 Payload
+          Sensor / Payload Selection
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {(Object.keys(SENSORS) as SensorType[]).map((sensorKey) => {
           const info = SENSORS[sensorKey];
           const isSelected = selectedSensor === sensorKey;
@@ -53,9 +57,9 @@ export const SensorSelector: React.FC<SensorSelectorProps> = ({
               type="button"
               id={`${idPrefix}-sensor-${sensorKey.toLowerCase()}`}
               onClick={() => onChange(sensorKey)}
-              className={`relative flex flex-col items-start p-3 rounded-xl border transition-all text-left group ${
+              className={`relative flex flex-col items-start p-3 rounded-xl border transition-all text-left group cursor-pointer ${
                 isSelected
-                  ? 'bg-[#0B1220] border-[#35C6F4] ring-1 ring-[#35C6F4]/50 shadow-lg glow-cyan-sm'
+                  ? 'bg-[#0B1220] border-[#35C6F4] ring-1 ring-[#35C6F4]/50 shadow-lg'
                   : 'bg-[#0B1220]/60 border-slate-800 hover:border-slate-700 hover:bg-[#0B1220]'
               }`}
             >

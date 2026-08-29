@@ -34,4 +34,16 @@ export const SENSORS: Record<SensorType, SensorInfo> = {
     description: 'Mineralogical mapping and hydroxyl/water-ice signature identification across illuminated and shadow-boundary regions.',
     color: '#35D07F', // Emerald accent
   },
+  NAC: {
+    id: 'NAC',
+    name: 'LROC NAC',
+    fullName: 'Narrow Angle Camera (NASA LRO)',
+    resolution: '0.5 m / pixel spatial',
+    spectralBand: 'Panchromatic (400 – 750 nm)',
+    orbitAltitude: '50 km lunar mapping orbit',
+    swath: '5 km swath width',
+    description: 'High-contrast narrow-angle framing for precision geological feature verification and cross-mission registration.',
+    color: '#F4B035', // Amber accent
+  },
 };
+
