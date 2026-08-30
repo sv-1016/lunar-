@@ -41,7 +41,7 @@ import {
   X
 } from 'lucide-react';
 
-export const LROC_QUICKMAP_DATASET_URL = 'https://quickmap.lroc.im-ldi.com/?prjExtent=-2970006.1289134%2C-2218174.8155258%2C3086634.8156613%2C753313.9052709&earthShadowEnabled=true&proj=10&stack=3314&defs=N4IgzGCMAsIFygPYAcCGBjAlgFwJ70gF9Cg';
+export const LROC_QUICKMAP_DATASET_URL = 'https://quickmap.lroc.im-ldi.com/?prjExtent=-3541257.9234973%2C-1737400%2C3541257.9234973%2C1737400&earthShadowEnabled=true&proj=10&stack=3314&defs=N4IgzGCMAsIFygPYAcCGBjAlgFwJ70gF9Cg';
 
 export type AnimationStage = 
   | 'globe_rotate'      // 1. 🌕 3D Moon continuous 360° rotation around vertical axis (medium distance, centered)
@@ -841,13 +841,12 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
     };
   }, [tilt3D]);
 
-  // Mouse & Touch Controls (Pause cinematic tour on user grab)
+  // Mouse & Touch Controls (Allow inspection during grab, continue smooth 360° rotation)
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
     dragButtonRef.current = e.button;
     previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
     setIsCinematicTourActive(false); // Switch to manual exploration
-    setAutoRotate(false);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -887,7 +886,6 @@ export const GoogleMoonGlobe: React.FC<GoogleMoonGlobeProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsCinematicTourActive(false);
-    setAutoRotate(false);
     if (e.touches.length === 1) {
       isDraggingRef.current = true;
       previousMousePositionRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
